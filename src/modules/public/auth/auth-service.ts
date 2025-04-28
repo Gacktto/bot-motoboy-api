@@ -97,7 +97,7 @@ export async function login(request: FastifyRequest, reply: FastifyReply) {
     });
 
     // Opcionalmente, ainda pode retornar o userId no body
-    return reply.send({ message: "Login realizado com sucesso", userId: user.id, status: 200 });
+    return reply.send({ message: "Login realizado com sucesso", userId: user.id, authToken: token, status: 200 });
 
   } catch (error) {
     handleError(reply, error, "Ocorreu um erro ao fazer login.");
