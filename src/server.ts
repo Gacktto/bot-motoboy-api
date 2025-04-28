@@ -12,6 +12,8 @@ import { prisma } from "./services/prismaService";
 import { registerRoutes } from "./routes/routes";
 import { register } from "module";
 
+import cookie from "@fastify/cookie"
+
 dotenv.config();
 
 const isDevelopment = process.env.NODE_ENV === "development";
@@ -29,6 +31,11 @@ app.register(cors, {
   methods: ["GET", "POST", "PUT", "DELETE"],
   allowedHeaders: ["Content-Type", "Authorization", "X-User-ID"],
 });
+
+app.register(cookie, {
+  secret: process.env.COOKIE_SECRET, // para cookies assinados (opcional)
+});
+
 
 app.register(authController);
 // app.register(whatsAppController);

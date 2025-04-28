@@ -78,8 +78,18 @@ export async function login(request: FastifyRequest, reply: FastifyReply) {
     // Gere o token JWT
     const token = generateToken({ id: user.id, name: user.name });
 
-    // Responda com o token JWT
-    return reply.send({ token, userId: user.id, status: 200 });
+    // Definir o token JWT como um cookie seguro
+    reply.setCookie("auth_token", token, {
+      path: "/",
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production", // Apenas HTTPS em produção
+      sameSite: "strict", // ou "Lax", dependendo do comportamento que você quiser
+      maxAge: 60 * 60 * 24 * 2, // 2 dias
+    });
+
+    // Opcionalmente, ainda pode retornar o userId no body
+    return reply.send({ message: "Login realizado com sucesso", userId: user.id, status: 200 });
+
   } catch (error) {
     handleError(reply, error, "Ocorreu um erro ao fazer login.");
   }
