@@ -1,0 +1,2 @@
+- Adicionado a pasta startup para definir os scripts de inicialização do servidor
+    - Adicionado o script syncBots.ts para verificar os dipositivos marcados como conectados e atualizar o banco de dados para desconectados.

@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "_version": "18.2.0",
+  "compilerOptions": {
+    "lib": ["es2023"],
+    "module": "node16",
+    "target": "es2022",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "moduleResolution": "node16",
+    "outDir": "./dist", // Diretório de saída para os arquivos compilados
+    "rootDir": "./src", // Diretório de origem do código-fonte
+    "declaration": true, // Gera arquivos .d.ts para os tipos
+    "sourceMap": true // Gera arquivos .map para depuração
+  },
+  "include": ["src/**/*.ts"], // Inclui todos os arquivos TypeScript dentro da pasta 'src'
+  "exclude": ["node_modules"] // Exclui a pasta 'node_modules' da compilação
+}

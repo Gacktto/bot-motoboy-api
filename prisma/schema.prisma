@@ -1,0 +1,75 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String
+  phone     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  enterpriseContacts EnterpriseContacts[]
+  Delivery           Delivery[]
+
+  botConnection BotConection?
+
+  @@map("users")
+}
+
+model BotConection {
+  id String @id @default(uuid())
+
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id])
+
+  isConnected Boolean  @default(false)
+  isRunning   Boolean  @default(false)
+  updatedAt   DateTime @updatedAt
+
+  @@map("bot_conections")
+}
+
+model EnterpriseContacts {
+  id       String     @id @default(uuid())
+  phone    String
+  name     String
+  userId   String
+  user     User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  Delivery Delivery[]
+
+  @@unique([name, phone, userId]) // Adiciona a restrição de unicidade para esses 3 campos
+}
+
+enum DeliveryStatus {
+  PENDING
+  PROGRESS
+  COMPLETED
+  CANCELED
+}
+
+model Delivery {
+  id                   String         @id @default(uuid())
+  status               DeliveryStatus @default(PENDING)
+  userId               String
+  enterpriseContactsId String
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime       @updatedAt
+
+  user               User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  enterpriseContacts EnterpriseContacts @relation(fields: [enterpriseContactsId], references: [id], onDelete: Cascade)
+
+  @@map("deliveries")
+}
