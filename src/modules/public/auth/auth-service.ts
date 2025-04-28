@@ -83,7 +83,7 @@ export async function login(request: FastifyRequest, reply: FastifyReply) {
       path: "/",
       httpOnly: true,
       secure: process.env.NODE_ENV === "production", // Apenas HTTPS em produção
-      sameSite: "lax", // ou "Lax", dependendo do comportamento que você quiser
+      sameSite: "none", // ou "Lax", dependendo do comportamento que você quiser
       maxAge: 60 * 60 * 24 * 2, // 2 dias
     });
 
@@ -92,7 +92,7 @@ export async function login(request: FastifyRequest, reply: FastifyReply) {
       path: "/",
       httpOnly: true,
       secure: process.env.NODE_ENV === "production", // Apenas HTTPS em produção
-      sameSite: "lax", // ou "Lax", dependendo do comportamento que você quiser
+      sameSite: "none", // ou "Lax", dependendo do comportamento que você quiser
       maxAge: 60 * 60 * 24 * 2, // 2 dias
     });
 
