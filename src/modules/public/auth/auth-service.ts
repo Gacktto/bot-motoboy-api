@@ -87,6 +87,15 @@ export async function login(request: FastifyRequest, reply: FastifyReply) {
       maxAge: 60 * 60 * 24 * 2, // 2 dias
     });
 
+    // Definir o token JWT como um cookie seguro
+    reply.setCookie("userId", user.id, {
+      path: "/",
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production", // Apenas HTTPS em produção
+      sameSite: "strict", // ou "Lax", dependendo do comportamento que você quiser
+      maxAge: 60 * 60 * 24 * 2, // 2 dias
+    });
+
     // Opcionalmente, ainda pode retornar o userId no body
     return reply.send({ message: "Login realizado com sucesso", userId: user.id, status: 200 });
 
