@@ -16,11 +16,16 @@ export async function qrCodeGenerate(
 
   try {
     const qrCode = await generateQRCode(userId);
-    return reply.send({ qrCode });
+    return reply.send({ qrCode }); // <-- esse return é crucial
   } catch (error) {
-    handleError(reply, error, "Erro ao gerar QR Code.");
+    if (!reply.sent) {
+      handleError(reply, error, "Erro ao gerar QR Code.");
+    } else {
+      console.warn("Erro após resposta já enviada:", error);
+    }
   }
 }
+
 
 export async function botConectionStatus(
   request: FastifyRequest,
