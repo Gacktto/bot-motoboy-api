@@ -6,6 +6,8 @@ import {
   enterpriseParamsSchema,
 } from "./enterprise-contacts-schemas";
 
+import validator from "validator";
+
 export async function list(request: FastifyRequest, reply: FastifyReply) {
   const userId = request.headers["user-id"] as string;
 
@@ -54,13 +56,19 @@ export async function create(request: FastifyRequest, reply: FastifyReply) {
   const userId = request.headers["user-id"] as string;
 
   try {
+    // Validação
     const { name, phone } = enterpriseBodySchema.parse(request.body);
 
+    // Sanitização
+    const sanitizedName = validator.escape(name.trim());
+    const sanitizedPhone = phone.replace(/[^0-9+()\- ]/g, "").trim();
+
+    // Verifica duplicidade
     const hasUser = await prisma.enterpriseContacts.findFirst({
       where: {
         userId,
-        name,
-        phone,
+        name: sanitizedName,
+        phone: sanitizedPhone,
       },
     });
 
@@ -73,8 +81,8 @@ export async function create(request: FastifyRequest, reply: FastifyReply) {
     const enterprise = await prisma.enterpriseContacts.create({
       data: {
         userId,
-        name,
-        phone,
+        name: sanitizedName,
+        phone: sanitizedPhone,
       },
     });
     reply.status(201).send(enterprise);

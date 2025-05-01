@@ -5,30 +5,50 @@ import { authLoginBodySchema, authRegisterBodySchema } from "./auth-schemas";
 import { comparePassword, hashPassword } from "../../../libs/bcryptjs";
 import { generateToken } from "../../../libs/jwt";
 
+import { verifyCsrf } from "../../../middlewares/csrf-token";
+
+import validator from "validator";
+
 export async function register(request: FastifyRequest, reply: FastifyReply) {
   try {
+
+    if (!verifyCsrf(request, reply)) {
+      return reply.status(403).send({ error: "CSRF token inválido" });
+    }
+
     const { email, name, password, phone } = authRegisterBodySchema.parse(
       request.body
     );
 
+    const normalizedEmail = validator.normalizeEmail(email);
+
+    if (!normalizedEmail) {
+      return reply.status(400).send({ error: "E-mail inválido." });
+    }
+
+    const cleanEmail = normalizedEmail;
+    const cleanName = validator.escape(validator.trim(name));
+    const cleanPhone = validator.whitelist(validator.trim(phone), "0-9+");
+    const cleanPassword = validator.escape(password);
+
     // Verificar se o usuário já existe
     const existingUser = await prisma.user.findUnique({
-      where: { email },
+      where: { email: cleanEmail },
     });
 
     if (existingUser) {
       return reply.send({ error: "Usuário já existe", status: 409 });
     }
 
-    const hashedPassword = await hashPassword(password);
+    const hashedPassword = await hashPassword(cleanPassword);
 
     // Create user and BotConnection in a transaction
     const result = await prisma.$transaction(async (tx) => {
       const user = await tx.user.create({
         data: {
-          email,
-          name,
-          phone,
+          email: cleanEmail,
+          name: cleanName,
+          phone: cleanPhone,
           password: hashedPassword,
         },
       });
@@ -56,17 +76,25 @@ export async function register(request: FastifyRequest, reply: FastifyReply) {
 
 export async function login(request: FastifyRequest, reply: FastifyReply) {
   try {
+    
+    if (!verifyCsrf(request, reply)) {
+      return reply.status(403).send({ error: "CSRF token inválido" });
+    }
+
     const { phone, password } = authLoginBodySchema.parse(request.body);
 
+    const cleanPhone = validator.blacklist(phone.trim(), "<>'\"/;"); // remove caracteres perigosos
+    const cleanPassword = password.trim();
+
     const user = await prisma.user.findUnique({
-      where: { phone },
+      where: { phone: cleanPhone },
     });
 
     if (!user) {
       return reply.send({ error: "Usuário não encontrado", status: 404 });
     }
 
-    const isPasswordValid = await comparePassword(password, user.password);
+    const isPasswordValid = await comparePassword(cleanPassword, user.password);
 
     if (!isPasswordValid) {
       return reply.send({

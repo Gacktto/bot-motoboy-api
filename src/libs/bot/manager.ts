@@ -5,7 +5,7 @@ import path from "path";
 import { createWhatsAppClient } from "./client";
 import { prisma } from "../../services/prismaService";
 
-const clients = new Map<string, Client>();
+export const clients = new Map<string, Client>();
 
 function getSessionPath(userId: string) {
   return path.resolve(__dirname, "..", "..", "..", "sessions", userId);
@@ -117,5 +117,3 @@ export async function disconnectClient(userId: string): Promise<boolean> {
     return false;
   }
 }
-
-export { clients };

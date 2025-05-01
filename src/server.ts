@@ -11,7 +11,10 @@ import { clients } from "./libs/bot/manager";
 import { prisma } from "./services/prismaService";
 import { registerRoutes } from "./routes/routes";
 import { register } from "module";
+import { qrCodeRoute } from "./routes/qrcode";
 import helmet from '@fastify/helmet';
+
+import Tokens from 'csrf';
 
 import cookie from "@fastify/cookie"
 
@@ -19,6 +22,8 @@ dotenv.config();
 
 const isDevelopment = process.env.NODE_ENV === "development";
 const app = Fastify({ logger: true });
+
+const tokens = new Tokens();
 
 // app.register(cors, {
 //   origin: process.env.APP_URL,
@@ -30,7 +35,7 @@ app.register(cors, {
   origin: true, // permite todas as origens
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE"],
-  allowedHeaders: ["Content-Type", "Authorization", "X-User-ID"],
+  allowedHeaders: ["Content-Type", "Authorization", "X-User-ID", "csrf-token"],
 });
 
 app.register(cookie, {
@@ -49,6 +54,21 @@ app.register(enterpriseContactsController);
 app.register(deliveriesContactsController);
 app.register(botConectionController);
 app.register(registerRoutes);
+
+app.get('/csrf-token', async (req, reply) => {
+  const secret = await tokens.secret();
+  const token = tokens.create(secret);
+
+  // Armazena o segredo em cookie seguro
+  reply.setCookie('csrf_secret', secret, {
+    path: '/',
+    httpOnly: true,
+    sameSite: 'none', // <--- necessário para cross-origin
+    secure: true,     // <--- obrigatório com SameSite 'none'
+  });  
+
+  return { csrfToken: token };
+});
 
 app.get("/debug/connected-users", async () => {
   const connectedUsers = Array.from(clients.keys());

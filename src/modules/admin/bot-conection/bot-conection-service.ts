@@ -27,7 +27,6 @@ export async function botConectionStatus(
   reply: FastifyReply
 ) {
   const { userId } = getHeaders(request);
-  // const userId = (request.user as { id: string }).id;
 
   try {
     const botConection = await prisma.botConection.findUnique({
@@ -37,7 +36,7 @@ export async function botConectionStatus(
     if (!botConection) {
       return reply.status(404).send({ message: "Conexão não encontrada." });
     }
-    
+
     return reply.send({
       isConnected: botConection.isConnected,
       isRunning: botConection.isRunning,

@@ -6,6 +6,8 @@ import {
   deliveryCreateSchema,
 } from "./deliveries-schema";
 
+import validator from "validator";
+
 export async function list(request: FastifyRequest, reply: FastifyReply) {
   const userId = request.headers["user-id"] as string;
   try {
@@ -23,14 +25,20 @@ export async function list(request: FastifyRequest, reply: FastifyReply) {
 
 export async function create(request: FastifyRequest, reply: FastifyReply) {
   try {
+    // Validação
     const { userId, enterpriseContactsId } = deliveryCreateSchema.parse(
       request.body
     );
 
+    // Sanitização
+    const sanitizedUserId = validator.trim(userId);
+    const sanitizedEnterpriseId = validator.trim(enterpriseContactsId);
+
+    // Verifica duplicidade
     const hasDeliveryPending = await prisma.delivery.findFirst({
       where: {
-        userId,
-        enterpriseContactsId,
+        userId: sanitizedUserId,
+        enterpriseContactsId: sanitizedEnterpriseId,
         status: "PENDING",
       },
     });
