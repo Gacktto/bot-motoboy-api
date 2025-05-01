@@ -11,6 +11,7 @@ import { clients } from "./libs/bot/manager";
 import { prisma } from "./services/prismaService";
 import { registerRoutes } from "./routes/routes";
 import { register } from "module";
+import helmet from '@fastify/helmet';
 
 import cookie from "@fastify/cookie"
 
@@ -34,6 +35,11 @@ app.register(cors, {
 
 app.register(cookie, {
   secret: process.env.COOKIE_SECRET, // para cookies assinados (opcional)
+});
+
+app.register(helmet, {
+  global: true,
+  contentSecurityPolicy: false, // Desativado por padrão, habilite se for necessário
 });
 
 
