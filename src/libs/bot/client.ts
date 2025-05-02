@@ -2,6 +2,7 @@ import { Client, LocalAuth } from "whatsapp-web.js";
 import fs from "fs";
 import path from "path";
 import GroupMessages from "./messages";
+import { prisma } from "../../services/prismaService";
 
 export function createWhatsAppClient(userId: string): Client {
   const sessionDir = path.resolve(__dirname, "..", "..", "..", ".wwebjs_auth");
@@ -25,8 +26,12 @@ export function createWhatsAppClient(userId: string): Client {
     console.log(`[${userId}] Cliente pronto!`);
   });
 
-  client.on("auth_failure", () => {
+  client.on("auth_failure", async () => {
     console.log(`[${userId}] Falha na autenticação`);
+    await prisma.botConection.updateMany({
+      where: { userId },
+      data: { isConnected: false, isRunning: false },
+    });
   });
 
   client.on("message", (message) => {

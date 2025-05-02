@@ -75,8 +75,11 @@ export function generateQRCode(userId: string): Promise<string> {
     const qrCallback = async (qr: string) => {
       try {
         const qrImage = await QRCode.toDataURL(qr);
-        resolve(qrImage);
-        qrListeners.delete(userId); // remove após sucesso
+
+        if (qrListeners.has(userId)) {
+          resolve(qrImage); // <-- só chama se ainda estiver pendente
+          qrListeners.delete(userId);
+        }
 
         await prisma.botConection.upsert({
           where: { userId },
@@ -84,7 +87,10 @@ export function generateQRCode(userId: string): Promise<string> {
           update: { isConnected: false, isRunning: false },
         });
       } catch (err) {
-        reject(err);
+        if (qrListeners.has(userId)) {
+          reject(err); // garante que não rejeita se já respondeu
+          qrListeners.delete(userId);
+        }
       }
     };
 
@@ -92,6 +98,7 @@ export function generateQRCode(userId: string): Promise<string> {
     client.once("qr", qrCallback);
   });
 }
+
 
 export async function disconnectClient(userId: string): Promise<boolean> {
   try {
